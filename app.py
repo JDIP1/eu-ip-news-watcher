@@ -43,21 +43,29 @@ SOURCES = {
 
 # ニュース取得関数
 def fetch_news(url):
-    # より本物のブラウザに近い情報を送る
+    # セッション（ブラウザのセッション維持）を利用する
+    session = requests.Session()
+    
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,webp,image/apng,*/*;q=0.8',
+        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1',
+        'Accept': 'application/rss+xml,application/xml,text/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.9',
-        'Cache-Control': 'max-age=0',
+        'Referer': 'https://www.google.com/', # Googleから来たふりをする
+        'DNT': '1' # Do Not Track（追跡拒否）の設定
     }
+    
     try:
-        # verify=False を追加してSSLエラーを回避（一部のサイト用）
-        response = requests.get(url, headers=headers, timeout=15, verify=True)
+        # verify=False は一部の古いサイトのエラーを回避するため
+        response = session.get(url, headers=headers, timeout=15, verify=False)
         response.raise_for_status()
+        
+        # 文字化け対策
+        response.encoding = response.apparent_encoding
+        
         return feedparser.parse(response.content)
     except Exception as e:
-        # 何が原因で失敗したか画面に少し出す（デバッグ用）
-        st.sidebar.error(f"Error: {str(e)}")
+        # デバッグ用にエラーメッセージを小さく表示
+        st.sidebar.warning(f"詳細エラー: {selected_name} が応答しませんでした")
         return None
         
 # サイドバーまたは上部に選択ボックスを表示
