@@ -9,36 +9,16 @@ st.set_page_config(page_title="Global IP News Hub", layout="centered")
 st.title("🇪🇺 Global IP News Hub")
 st.caption("欧州各国の知財庁・国際機関の最新ニュース")
 
-# RSSソースの辞書（名称: URL）
+# RSSソースの辞書（Google News経由に変換してブロックを回避）
 SOURCES = {
-    "EPO (欧州特許庁)": "https://www.epo.org/en/news-events/rss",
-    "EUIPO (欧州連合知的財産庁)": "https://euipo.europa.eu/rss/news",
-    "European Commission (欧州委員会)": "https://ec.europa.eu/newsroom/rss",
-    "Curia (欧州司法裁判所)": "https://curia.europa.eu/jcms/jcms/rss_7000/en/",
-    "European Parliament (欧州議会)": "https://www.europarl.europa.eu/rss/en/news.xml",
-    "IP Helpdesk (EU)": "https://intellectual-property-helpdesk.ec.europa.eu/rss.xml",
-    "EUR-Lex (欧州法)": "https://eur-lex.europa.eu/rss.xml",
-    "WIPO (世界知的所有権機関)": "https://www.wipo.int/pressroom/en/rss.xml",
-    "DPMA (ドイツ特許商標庁)": "https://www.dpma.de/service/rss/rss.xml",
-    "INPI (フランス)": "https://www.inpi.fr/fr/rss/actualites",
-    "OEPM (スペイン)": "https://www.oepm.es/export/sites/oepm/comun/rss/rss_noticias.xml",
-    "RVO (オランダ)": "https://www.rvo.nl/rss/octrooien.xml",
-    "PRV (スウェーデン)": "https://www.prv.se/en/rss/news/",
-    "DKPTO (デンマーク)": "https://www.dkpto.org/rss/news",
-    "PRH (フィンランド)": "https://www.prh.fi/en/rss/news.xml",
-    "Patentamt (オーストリア)": "https://www.patentamt.at/en/rss/news",
-    "BOIP (ベネルクス)": "https://www.boip.int/en/rss/news",
-    "UPRP (ポーランド)": "https://uprp.gov.pl/en/rss.xml",
-    "UPV (チェコ)": "https://www.upv.cz/en/rss/news",
-    "INDPROP (スロバキア)": "https://www.indprop.gov.sk/en/rss.xml",
-    "HIPO (ハンガリー)": "https://www.hipo.gov.hu/en/rss",
-    "INPI (ポルトガル)": "https://inpi.justica.gov.pt/rss",
-    "OBI (ギリシャ)": "https://www.obi.gr/rss",
-    "OSIM (ルーマニア)": "https://www.osim.ro/rss",
-    "BPO (ブルガリア)": "https://www.bpo.bg/rss",
-    "EPA (エストニア)": "https://www.epa.ee/rss",
-    "LRPV (ラトビア)": "https://www.lrpv.gov.lv/rss",
-    "VPB (リトアニア)": "https://vpb.lrv.lt/rss"
+    "EPO (欧州特許庁)": "https://news.google.com/rss/search?q=site:epo.org+when:7d&hl=en-GB&gl=GB&ceid=GB:en",
+    "EUIPO (欧州連合知的財産庁)": "https://news.google.com/rss/search?q=site:euipo.europa.eu+when:7d&hl=en-GB&gl=GB&ceid=GB:en",
+    "European Commission (欧州委員会)": "https://news.google.com/rss/search?q=site:ec.europa.eu+intellectual+property+when:7d&hl=en-GB&gl=GB&ceid=GB:en",
+    "WIPO (世界知的所有権機関)": "https://www.wipo.int/pressroom/en/rss.xml", # WIPOはそのままでOK
+    "DPMA (ドイツ特許商標庁)": "https://news.google.com/rss/search?q=site:dpma.de+when:30d&hl=de&gl=DE&ceid=DE:de",
+    "INPI (フランス)": "https://news.google.com/rss/search?q=site:inpi.fr+when:30d&hl=fr&gl=FR&ceid=FR:fr",
+    "EUR-Lex (欧州法)": "https://news.google.com/rss/search?q=site:eur-lex.europa.eu+when:7d&hl=en-GB&gl=GB&ceid=GB:en",
+    "Curia (欧州司法裁判所)": "https://news.google.com/rss/search?q=site:curia.europa.eu+when:7d&hl=en-GB&gl=GB&ceid=GB:en"
 }
 
 # ニュース取得関数
