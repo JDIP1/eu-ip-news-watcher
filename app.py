@@ -9,38 +9,72 @@ st.set_page_config(page_title="Global IP News Hub", layout="centered")
 st.title("🇪🇺 Global IP News Hub")
 st.caption("欧州各国の知財庁・国際機関の最新ニュース")
 
-# RSSソースの辞書（Google News経由で各機関のドメインを指定）
+import streamlit as st
+import feedparser
+import requests
+
+st.set_page_config(page_title="EU IP News Hub", layout="centered")
+st.title("🇪🇺 Global IP News Hub")
+
+# 直接取得用URLとGoogle News用URLのセット
 SOURCES = {
-    "EPO (欧州特許庁)": "https://news.google.com/rss/search?q=site:epo.org+when:30d&hl=en-GB&gl=GB&ceid=GB:en",
-    "EUIPO (欧州連合知的財産庁)": "https://news.google.com/rss/search?q=site:euipo.europa.eu+when:30d&hl=en-GB&gl=GB&ceid=GB:en",
-    "European Commission (欧州委員会)": "https://news.google.com/rss/search?q=site:ec.europa.eu+intellectual+property+when:30d&hl=en-GB&gl=GB&ceid=GB:en",
-    "Curia (欧州司法裁判所)": "https://news.google.com/rss/search?q=site:curia.europa.eu+when:30d&hl=en-GB&gl=GB&ceid=GB:en",
-    "European Parliament (欧州議会)": "https://news.google.com/rss/search?q=site:europarl.europa.eu+when:30d&hl=en-GB&gl=GB&ceid=GB:en",
-    "IP Helpdesk (EU)": "https://news.google.com/rss/search?q=site:intellectual-property-helpdesk.ec.europa.eu+when:30d&hl=en-GB&gl=GB&ceid=GB:en",
-    "EUR-Lex (欧州法)": "https://news.google.com/rss/search?q=site:eur-lex.europa.eu+when:30d&hl=en-GB&gl=GB&ceid=GB:en",
-    "WIPO (世界知的所有権機関)": "https://www.wipo.int/pressroom/en/rss.xml", # WIPOは直接でOK
-    "DPMA (ドイツ)": "https://news.google.com/rss/search?q=site:dpma.de+when:30d&hl=de&gl=DE&ceid=DE:de",
-    "INPI (フランス)": "https://news.google.com/rss/search?q=site:inpi.fr+when:30d&hl=fr&gl=FR&ceid=FR:fr",
-    "OEPM (スペイン)": "https://news.google.com/rss/search?q=site:oepm.es+when:30d&hl=es&gl=ES&ceid=ES:es",
-    "RVO (オランダ)": "https://news.google.com/rss/search?q=site:rvo.nl+octrooien+when:30d&hl=nl&gl=NL&ceid=NL:nl",
-    "PRV (スウェーデン)": "https://news.google.com/rss/search?q=site:prv.se+when:30d&hl=en&gl=SE&ceid=SE:en",
-    "DKPTO (デンマーク)": "https://news.google.com/rss/search?q=site:dkpto.org+when:30d&hl=en&gl=DK&ceid=DK:en",
-    "PRH (フィンランド)": "https://news.google.com/rss/search?q=site:prh.fi+when:30d&hl=en&gl=FI&ceid=FI:en",
-    "Patentamt (オーストリア)": "https://news.google.com/rss/search?q=site:patentamt.at+when:30d&hl=de&gl=AT&ceid=AT:de",
-    "BOIP (ベネルクス)": "https://news.google.com/rss/search?q=site:boip.int+when:30d&hl=en&gl=BE&ceid=BE:en",
-    "UPRP (ポーランド)": "https://news.google.com/rss/search?q=site:uprp.gov.pl+when:30d&hl=en&gl=PL&ceid=PL:en",
-    "UPV (チェコ)": "https://news.google.com/rss/search?q=site:upv.cz+when:30d&hl=en&gl=CZ&ceid=CZ:en",
-    "INDPROP (スロバキア)": "https://news.google.com/rss/search?q=site:indprop.gov.sk+when:30d&hl=en&gl=SK&ceid=SK:en",
-    "HIPO (ハンガリー)": "https://news.google.com/rss/search?q=site:hipo.gov.hu+when:30d&hl=en&gl=HU&ceid=HU:en",
-    "INPI (ポルトガル)": "https://news.google.com/rss/search?q=site:inpi.justica.gov.pt+when:30d&hl=pt&gl=PT&ceid=PT:pt",
-    "OBI (ギリシャ)": "https://news.google.com/rss/search?q=site:obi.gr+when:30d&hl=en&gl=GR&ceid=GR:en",
-    "OSIM (ルーマニア)": "https://news.google.com/rss/search?q=site:osim.ro+when:30d&hl=en&gl=RO&ceid=RO:en",
-    "BPO (ブルガリア)": "https://news.google.com/rss/search?q=site:bpo.bg+when:30d&hl=en&gl=BG&ceid=BG:en",
-    "EPA (エストニア)": "https://news.google.com/rss/search?q=site:epa.ee+when:30d&hl=en&gl=EE&ceid=EE:en",
-    "LRPV (ラトビア)": "https://news.google.com/rss/search?q=site:lrpv.gov.lv+when:30d&hl=en&gl=LV&ceid=LV:en",
-    "VPB (リトアニア)": "https://news.google.com/rss/search?q=site:vpb.lrv.lt+when:30d&hl=en&gl=LT&ceid=LT:en"
+    "EPO (欧州特許庁)": {
+        "direct": "https://www.epo.org/en/news-events/rss",
+        "google": "https://news.google.com/rss/search?q=site:epo.org+when:30d&hl=en-GB&gl=GB&ceid=GB:en"
+    },
+    "EUIPO (欧州連合知的財産庁)": {
+        "direct": "https://euipo.europa.eu/rss/news",
+        "google": "https://news.google.com/rss/search?q=site:euipo.europa.eu+when:30d&hl=en-GB&gl=GB&ceid=GB:en"
+    },
+    "WIPO (世界知的所有権機関)": {
+        "direct": "https://www.wipo.int/pressroom/en/rss.xml",
+        "google": "https://news.google.com/rss/search?q=site:wipo.int+when:30d&hl=en&gl=US&ceid=US:en"
+    },
+    "DPMA (ドイツ)": {
+        "direct": "https://www.dpma.de/service/rss/rss.xml",
+        "google": "https://news.google.com/rss/search?q=site:dpma.de+when:30d&hl=de&gl=DE&ceid=DE:de"
+    },
+    "INPI (フランス)": {
+        "direct": "https://www.inpi.fr/fr/rss/actualites",
+        "google": "https://news.google.com/rss/search?q=site:inpi.fr+when:30d&hl=fr&gl=FR&ceid=FR:fr"
+    }
+    # 他のソースも同様の形式で追加可能
 }
 
+def fetch_news(name, urls):
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+    
+    # まずは直接取得を試みる
+    try:
+        res = requests.get(urls["direct"], headers=headers, timeout=10, verify=False)
+        if res.status_code == 200:
+            feed = feedparser.parse(res.content)
+            if feed.entries:
+                return feed.entries, "直接取得（公式）"
+    except:
+        pass
+    
+    # 失敗したらGoogle News経由を試みる
+    try:
+        res = requests.get(urls["google"], headers=headers, timeout=10)
+        feed = feedparser.parse(res.content)
+        return feed.entries, "Google News経由（バックアップ）"
+    except:
+        return [], "取得失敗"
+
+selected_name = st.selectbox("ニュースソースを選択", list(SOURCES.keys()))
+entries, method = fetch_news(selected_name, SOURCES[selected_name])
+
+st.caption(f"取得モード: {method}")
+
+if entries:
+    for entry in entries[:15]:
+        with st.container(border=True):
+            st.subheader(entry.title)
+            st.caption(f"📅 {entry.get('published', '日付不明')}")
+            st.link_button("記事を読む", entry.link)
+else:
+    st.error("現在、どの経路からもニュースを取得できません。")
 # ニュース取得関数
 def fetch_news(url):
     # セッション（ブラウザのセッション維持）を利用する
