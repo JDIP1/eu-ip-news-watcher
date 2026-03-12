@@ -43,14 +43,23 @@ SOURCES = {
 
 # ニュース取得関数
 def fetch_news(url):
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+    # より本物のブラウザに近い情報を送る
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Cache-Control': 'max-age=0',
+    }
     try:
-        response = requests.get(url, headers=headers, timeout=15)
+        # verify=False を追加してSSLエラーを回避（一部のサイト用）
+        response = requests.get(url, headers=headers, timeout=15, verify=True)
         response.raise_for_status()
         return feedparser.parse(response.content)
     except Exception as e:
+        # 何が原因で失敗したか画面に少し出す（デバッグ用）
+        st.sidebar.error(f"Error: {str(e)}")
         return None
-
+        
 # サイドバーまたは上部に選択ボックスを表示
 selected_name = st.selectbox("ニュースソースを選択してください", list(SOURCES.keys()))
 url = SOURCES[selected_name]
