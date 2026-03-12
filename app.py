@@ -2,42 +2,49 @@ import streamlit as st
 import feedparser
 import requests
 
-st.title("🇪🇺 EPO News Watcher")
+# ページ設定
+st.set_page_config(page_title="EU IP News Hub", layout="wide")
 
-# EPOのRSSフィードURL
-RSS_URL = "https://www.epo.org/en/news-events/news/feed"
+st.title("🇪🇺 EU Intellectual Property News Hub")
+st.write("EPO, EUIPO, および欧州委員会の最新ニュースをまとめてチェックできます。")
 
-# 1. requestsを使ってブラウザからのアクセスを装う
-def fetch_rss(url):
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'
-    }
+# ニュースサイトの設定（サイト名: RSSのURL）
+SOURCES = {
+    "EPO (欧州特許庁)": "https://www.epo.org/en/news-events/news/feed",
+    "EUIPO (欧州連合知的財産庁)": "https://www.euipo.europa.eu/en/news-and-events/news/rss",
+    "European Commission (欧州委員会 - 知財関連)": "https://ec.europa.eu/newsroom/seaipr/rss/items"
+}
+
+def fetch_news(url):
+    headers = {'User-Agent': 'Mozilla/5.0'}
     try:
         response = requests.get(url, headers=headers, timeout=15)
-        response.raise_for_status() # エラーがあれば例外を出す
-        return response.content
-    except Exception as e:
-        st.error(f"データの取得に失敗しました: {e}")
+        response.raise_for_status()
+        return feedparser.parse(response.content)
+    except:
         return None
 
-# 実行
-xml_data = fetch_rss(RSS_URL)
+# タブを作成
+tabs = st.tabs(list(SOURCES.keys()))
 
-if xml_data:
-    # 2. 取得したXMLをfeedparserで解析
-    feed = feedparser.parse(xml_data)
-    
-    if not feed.entries:
-        st.warning("ニュースが見つかりませんでした。")
-    
-    # 3. スマホで見やすく表示
-    for entry in feed.entries:
-        with st.container(border=True): # 枠で囲って見やすく
-            st.subheader(entry.title)
-            st.caption(f"📅 {entry.published}")
-            
-            # 要約があれば表示（HTMLタグを除去して表示される）
-            if 'summary' in entry:
-                st.write(entry.summary)
-            
-            st.link_button("記事を詳しく見る", entry.link)
+for i, (name, url) in enumerate(SOURCES.items()):
+    with tabs[i]:
+        st.header(f"{name} の最新ニュース")
+        feed = fetch_news(url)
+        
+        if feed and feed.entries:
+            for entry in feed.entries[:10]: # 最新10件を表示
+                with st.container(border=True):
+                    st.subheader(entry.title)
+                    # 日付表示（サイトによって形式が異なる場合があるためケア）
+                    date = entry.get('published', entry.get('updated', '日付不明'))
+                    st.caption(f"📅 {date}")
+                    
+                    if 'summary' in entry:
+                        # タグを除去して150文字程度表示
+                        summary = entry.summary[:150] + "..."
+                        st.write(summary)
+                        
+                    st.link_button(f"{name} で記事を読む", entry.link)
+        else:
+            st.error(f"{name} のデータを取得できませんでした。URLが変更されているか、一時的なエラーです。")
